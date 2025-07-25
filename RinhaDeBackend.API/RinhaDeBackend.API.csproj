@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RinhaDeBackend.Application\RinhaDeBackend.Application.csproj" />
     <ProjectReference Include="..\RinhaDeBackend.Domain\RinhaDeBackend.Domain.csproj" />
+    <ProjectReference Include="..\RinhaDeBackend.Infra\RinhaDeBackend.Infra.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using RinhaDeBackend.Application;
 using RinhaDeBackend.Domain;
+using RinhaDeBackend.Infra;
+using System;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<PaymentService>();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseNpgsql(connectionString)
+           .LogTo(Console.WriteLine, LogLevel.Information)
+           .EnableSensitiveDataLogging()
+           .EnableDetailedErrors();
+});
 
 var app = builder.Build();
 
