@@ -1,0 +1,6 @@
+@RinhaDeBackend.API_HostAddress = http://localhost:5004
+
+GET {{RinhaDeBackend.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
