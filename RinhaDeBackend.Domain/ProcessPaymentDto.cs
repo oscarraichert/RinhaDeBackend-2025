@@ -2,8 +2,8 @@
 {
     public class ProcessPaymentDto
     {
-        public Guid correlationId { get; }
-        public decimal amount { get; }
-        public DateTime requestedAt { get; }
+        public Guid correlationId { get; set; }
+        public decimal amount { get; set; }
+        public DateTime requestedAt { get; set; }
     }
 }

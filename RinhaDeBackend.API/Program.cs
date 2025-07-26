@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using RinhaDeBackend.Application;
 using RinhaDeBackend.Domain;
 using RinhaDeBackend.Infra;
+using RinhaDeBackend.Infra.Repositories;
 using System;
 using System.Net;
 
@@ -11,7 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<PaymentService>();
+builder.Services.AddTransient<PaymentService>();
+builder.Services.AddTransient<AppDbContext>();
+builder.Services.AddTransient<PaymentRepository>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -37,11 +40,12 @@ app.MapGet("/alive", () => "Yes");
 
 app.MapPost("/payments", async (ProcessPaymentDto payment, PaymentService service) =>
 {
-    return await service.ProcessPaymentAsync(payment) switch
+    var result = await service.HandleProccessPayment(payment);
+
+    return result.IsSuccess switch
     {
-        HttpStatusCode.OK => Results.Ok(),
-        HttpStatusCode.UnprocessableEntity => Results.UnprocessableEntity(),
-        _ => Results.Problem()
+        true => Results.Ok(Result<ProcessPaymentDto>.Success(result.Value)),
+        false => Results.Problem(result.ErrorMessage),
     };
 })
 .WithName("ProcessPayment");

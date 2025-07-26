@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RinhaDeBackend.Domain\RinhaDeBackend.Domain.csproj" />
+    <ProjectReference Include="..\RinhaDeBackend.Infra\RinhaDeBackend.Infra.csproj" />
   </ItemGroup>
 
 </Project>
