@@ -19,17 +19,17 @@ namespace RinhaDeBackend.Infra.Repositories
             Payments = dbContext.Payments;
         }
 
-        public async Task<Result<ProcessPaymentDto>> InsertAsync(ProcessPaymentDto dto)
+        public async Task<Result<ProcessPaymentDto, string>> InsertAsync(ProcessPaymentDto dto)
         {
             try
             {
                 await Payments.AddAsync(dto);
                 await DbContext.SaveChangesAsync();
 
-                return Result<ProcessPaymentDto>.Success(dto);
+                return dto;
             }
             catch (Exception ex) {
-                return Result<ProcessPaymentDto>.Error(ex.Message);
+                return ex.Message;
             }
         }
     }

@@ -21,7 +21,7 @@ namespace RinhaDeBackend.Application
             Repository = repository;
         }
 
-        public async Task<Result<ProcessPaymentDto>> HandleProccessPayment(ProcessPaymentDto payment)
+        public async Task<Result<ProcessPaymentDto, string>> HandleProccessPayment(ProcessPaymentDto payment)
         {
             var processingResult = await ProcessPayment(payment);
 
@@ -29,40 +29,34 @@ namespace RinhaDeBackend.Application
             {
                 var queryResult = await Repository.InsertAsync(processingResult.Value!);
 
-                return queryResult.IsSuccess switch
-                {
-                    true => Result<ProcessPaymentDto>.Success(queryResult.Value),
-                    false => Result<ProcessPaymentDto>.Error(queryResult.ErrorMessage!),
-                };
+                return queryResult;
             }
 
-            return Result<ProcessPaymentDto>.Error(processingResult.ErrorMessage);
+            return processingResult;
         }
 
-        private async Task<Result<ProcessPaymentDto>> ProcessPayment(ProcessPaymentDto payment)
+        private async Task<Result<ProcessPaymentDto, string>> ProcessPayment(ProcessPaymentDto payment)
         {
             var response = await Client.PostAsync("http://localhost:8001/payments", JsonContent.Create(payment));
 
             var result = response.StatusCode switch
             {
-                HttpStatusCode.OK => Result<ProcessPaymentDto>.Success(payment),
+                HttpStatusCode.OK => payment,
                 _ => await ProcessPaymentFallback(payment),
             };
 
             return result;
         }
 
-        private async Task<Result<ProcessPaymentDto>> ProcessPaymentFallback(ProcessPaymentDto payment)
+        private async Task<Result<ProcessPaymentDto, string>> ProcessPaymentFallback(ProcessPaymentDto payment)
         {
             var response = await Client.PostAsync("http://localhost:8002/payments", JsonContent.Create(payment));
 
-            var result = response.StatusCode switch
+            return response.StatusCode switch
             {
-                HttpStatusCode.OK => Result<ProcessPaymentDto>.Success(payment),
-                _ => Result<ProcessPaymentDto>.Error(response.ReasonPhrase!),
+                HttpStatusCode.OK => payment,
+                _ => response.ReasonPhrase!,
             };
-
-            return result;
         }
     }
 }

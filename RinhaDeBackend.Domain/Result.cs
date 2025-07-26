@@ -6,20 +6,30 @@ using System.Threading.Tasks;
 
 namespace RinhaDeBackend.Domain
 {
-    public class Result<T>
+    public class Result<T, E>
     {
         public bool IsSuccess { get; set; }
-        public string? ErrorMessage { get; set; }
+        public E? ErrorValue { get; set; }
         public T? Value { get; set; }
 
-        public static Result<T> Success(T? value = default)
+        public static Result<T, E> Success(T value)
         {
-            return new Result<T> { IsSuccess = true, Value = value };
+            return new Result<T, E> { IsSuccess = true, Value = value };
         }
 
-        public static Result<T> Error(string? errorMessage)
+        public static Result<T, E> Error(E error)
         {
-            return new Result<T> { IsSuccess = false, ErrorMessage = errorMessage };
+            return new Result<T, E> { IsSuccess = false, ErrorValue = error };
+        }
+
+        public static implicit operator Result<T, E>(T value)
+        {
+            return Success(value);
+        }
+
+        public static implicit operator Result<T, E>(E error)
+        {
+            return Error(error);
         }
     }
 }

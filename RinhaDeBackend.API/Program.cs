@@ -44,8 +44,8 @@ app.MapPost("/payments", async (ProcessPaymentDto payment, PaymentService servic
 
     return result.IsSuccess switch
     {
-        true => Results.Ok(Result<ProcessPaymentDto>.Success(result.Value)),
-        false => Results.Problem(result.ErrorMessage),
+        true => Results.Ok(result.Value),
+        false => Results.Problem(result.ErrorValue),
     };
 })
 .WithName("ProcessPayment");
