@@ -15,6 +15,7 @@ WORKDIR /src
 COPY ["RinhaDeBackend.API/RinhaDeBackend.API.csproj", "RinhaDeBackend.API/"]
 COPY ["RinhaDeBackend.Application/RinhaDeBackend.Application.csproj", "RinhaDeBackend.Application/"]
 COPY ["RinhaDeBackend.Domain/RinhaDeBackend.Domain.csproj", "RinhaDeBackend.Domain/"]
+COPY ["RinhaDeBackend.Infra/RinhaDeBackend.Infra.csproj", "RinhaDeBackend.Infra/"]
 RUN dotnet restore "./RinhaDeBackend.API/RinhaDeBackend.API.csproj"
 COPY . .
 WORKDIR "/src/RinhaDeBackend.API"

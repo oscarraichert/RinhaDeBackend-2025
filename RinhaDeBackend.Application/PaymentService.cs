@@ -21,19 +21,30 @@ namespace RinhaDeBackend.Application
             Config = configuration;
         }
 
-        public async Task HandleProccessPayment(Payment payment)
+        public async Task<Result<Payment, string>> HandleProccessPayment(PaymentRequest paymentRequest)
         {
+            var payment = new Payment { correlationId = paymentRequest.correlationId, amount = paymentRequest.amount };
+
             var processingResult = await ProcessPayment(payment);
 
             if (processingResult.IsSuccess)
             {
-                await Repository.InsertAsync(processingResult.Value!);
+                var queryResult = await Repository.InsertAsync(processingResult.Value!);
+
+                if (!queryResult.IsSuccess)
+                {
+                    Console.WriteLine(queryResult.ErrorValue);
+                }
+
+                return queryResult;
             }
+
+            return processingResult;
         }
 
         private async Task<Result<Payment, string>> ProcessPayment(Payment payment)
         {
-            var response = await Client.PostAsync(Config["PROCESSOR_DEFAULT_URL"], JsonContent.Create(payment));
+            var response = await Client.PostAsync(Config["PROCESSOR_DEFAULT_URL"] + "/payments", JsonContent.Create(payment));
 
             var result = response.StatusCode switch
             {
@@ -46,7 +57,7 @@ namespace RinhaDeBackend.Application
 
         private async Task<Result<Payment, string>> ProcessPaymentFallback(Payment payment)
         {
-            var response = await Client.PostAsync(Config["PROCESSOR_FALLBACK_URL"], JsonContent.Create(payment));
+            var response = await Client.PostAsync(Config["PROCESSOR_FALLBACK_URL"] + "/payments", JsonContent.Create(payment));
 
             payment.processedOnFallback = true;
 
@@ -57,9 +68,9 @@ namespace RinhaDeBackend.Application
             };
         }
 
-        public Result<PaymentSummary, string> PaymentSummary()
+        public async Task<Result<PaymentSummary, string>> PaymentSummary(DateTime? from, DateTime? to)
         {
-            var payments = Repository.ReadAll();
+            var payments = await Repository.ReadAll(from, to);
 
             if (!payments.IsSuccess)
             {
