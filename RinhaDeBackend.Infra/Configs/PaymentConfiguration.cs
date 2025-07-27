@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 
 namespace RinhaDeBackend.Infra.Configs
 {
-    public class PaymentConfiguration : IEntityTypeConfiguration<ProcessPaymentDto>
+    public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
     {
-        public void Configure(EntityTypeBuilder<ProcessPaymentDto> builder)
+        public void Configure(EntityTypeBuilder<Payment> builder)
         {
             builder.HasKey(b => b.correlationId);
             builder.Property(b => b.amount);
             builder.Property(b => b.requestedAt);
+            builder.Property(b => b.processedOnFallback);
         }
     }
 }

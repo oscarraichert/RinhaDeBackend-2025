@@ -21,7 +21,7 @@ namespace RinhaDeBackend.Application
             Repository = repository;
         }
 
-        public async Task<Result<ProcessPaymentDto, string>> HandleProccessPayment(ProcessPaymentDto payment)
+        public async Task<Result<Payment, string>> HandleProccessPayment(Payment payment)
         {
             var processingResult = await ProcessPayment(payment);
 
@@ -35,7 +35,7 @@ namespace RinhaDeBackend.Application
             return processingResult;
         }
 
-        private async Task<Result<ProcessPaymentDto, string>> ProcessPayment(ProcessPaymentDto payment)
+        private async Task<Result<Payment, string>> ProcessPayment(Payment payment)
         {
             var response = await Client.PostAsync("http://localhost:8001/payments", JsonContent.Create(payment));
 
@@ -48,15 +48,53 @@ namespace RinhaDeBackend.Application
             return result;
         }
 
-        private async Task<Result<ProcessPaymentDto, string>> ProcessPaymentFallback(ProcessPaymentDto payment)
+        private async Task<Result<Payment, string>> ProcessPaymentFallback(Payment payment)
         {
             var response = await Client.PostAsync("http://localhost:8002/payments", JsonContent.Create(payment));
+
+            payment.processedOnFallback = true;
 
             return response.StatusCode switch
             {
                 HttpStatusCode.OK => payment,
                 _ => response.ReasonPhrase!,
             };
+        }
+
+        public Result<PaymentSummary, string> PaymentSummary()
+        {
+            var payments = Repository.ReadAll();
+
+            if (!payments.IsSuccess)
+            {
+                return payments.ErrorValue!;
+            }
+
+            (int Requests, decimal Amount) defaultPayments = (0, 0);
+            (int Requests, decimal Amount) fallbackPayments = (0, 0);
+
+            payments.Value!.ForEach(payment =>
+            {
+                _ = payment.processedOnFallback switch
+                {
+                    true => fallbackPayments = (fallbackPayments.Requests + 1, fallbackPayments.Amount + payment.amount),
+                    false => defaultPayments = (defaultPayments.Requests + 1, defaultPayments.Amount + payment.amount),
+                };
+            });
+
+            var defaultProcessor = new ProcessorSummary
+            {
+                TotalRequests = defaultPayments.Requests,
+                TotalAmount = defaultPayments.Amount
+            };
+
+            var fallbackProcessor = new ProcessorSummary
+            {
+                TotalRequests = fallbackPayments.Requests,
+                TotalAmount = fallbackPayments.Amount
+            };
+
+            return new PaymentSummary { Default = defaultProcessor, Fallback = fallbackProcessor };
         }
     }
 }

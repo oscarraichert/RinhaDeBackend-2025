@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RinhaDeBackend.Domain;
 
 namespace RinhaDeBackend.Infra
@@ -10,7 +11,7 @@ namespace RinhaDeBackend.Infra
         {
         }
 
-        public DbSet<ProcessPaymentDto> Payments { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

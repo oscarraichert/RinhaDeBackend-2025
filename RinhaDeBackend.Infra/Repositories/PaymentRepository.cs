@@ -11,7 +11,7 @@ namespace RinhaDeBackend.Infra.Repositories
     public class PaymentRepository
     {
         private AppDbContext DbContext { get; }
-        private DbSet<ProcessPaymentDto> Payments { get; }
+        private DbSet<Payment> Payments { get; }
 
         public PaymentRepository(AppDbContext dbContext)
         {
@@ -19,7 +19,7 @@ namespace RinhaDeBackend.Infra.Repositories
             Payments = dbContext.Payments;
         }
 
-        public async Task<Result<ProcessPaymentDto, string>> InsertAsync(ProcessPaymentDto dto)
+        public async Task<Result<Payment, string>> InsertAsync(Payment dto)
         {
             try
             {
@@ -28,7 +28,20 @@ namespace RinhaDeBackend.Infra.Repositories
 
                 return dto;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        public Result<List<Payment>, string> ReadAll()
+        {
+            try
+            {
+                return Payments.ToList();
+            }
+            catch (Exception ex)
+            {
                 return ex.Message;
             }
         }

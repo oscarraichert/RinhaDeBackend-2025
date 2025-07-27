@@ -19,7 +19,7 @@ builder.Services.AddTransient<PaymentRepository>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseNpgsql(connectionString)
+    options.UseNpgsql(connectionString, b => b.MigrationsAssembly("RinhaDeBackend.Infra"))
            .LogTo(Console.WriteLine, LogLevel.Information)
            .EnableSensitiveDataLogging()
            .EnableDetailedErrors();
@@ -38,7 +38,7 @@ app.UseHttpsRedirection();
 
 app.MapGet("/alive", () => "Yes");
 
-app.MapPost("/payments", async (ProcessPaymentDto payment, PaymentService service) =>
+app.MapPost("/payments", async (Payment payment, PaymentService service) =>
 {
     var result = await service.HandleProccessPayment(payment);
 
@@ -49,5 +49,17 @@ app.MapPost("/payments", async (ProcessPaymentDto payment, PaymentService servic
     };
 })
 .WithName("ProcessPayment");
+
+app.MapGet("payments-summary", (PaymentService service) =>
+{
+    var result = service.PaymentSummary();
+
+    return result.IsSuccess switch
+    {
+        true => Results.Ok(result.Value),
+        false => Results.Problem(result.ErrorValue),
+    };
+})
+.WithName("PaymentsSummary");
 
 app.Run();
