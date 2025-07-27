@@ -1,11 +1,9 @@
-﻿using RinhaDeBackend.Domain;
+﻿using Microsoft.Extensions.Configuration;
+using RinhaDeBackend.Domain;
 using RinhaDeBackend.Infra.Repositories;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Text.Json;
 
 namespace RinhaDeBackend.Application
 {
@@ -13,31 +11,29 @@ namespace RinhaDeBackend.Application
     {
         public HttpClient Client { get; }
         public PaymentRepository Repository { get; }
+        private readonly IConfiguration Config;
 
-        public PaymentService(PaymentRepository repository)
+        public PaymentService(IConfiguration configuration, PaymentRepository repository)
         {
             Client = new HttpClient();
             Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Repository = repository;
+            Config = configuration;
         }
 
-        public async Task<Result<Payment, string>> HandleProccessPayment(Payment payment)
+        public async Task HandleProccessPayment(Payment payment)
         {
             var processingResult = await ProcessPayment(payment);
 
             if (processingResult.IsSuccess)
             {
-                var queryResult = await Repository.InsertAsync(processingResult.Value!);
-
-                return queryResult;
+                await Repository.InsertAsync(processingResult.Value!);
             }
-
-            return processingResult;
         }
 
         private async Task<Result<Payment, string>> ProcessPayment(Payment payment)
         {
-            var response = await Client.PostAsync("http://localhost:8001/payments", JsonContent.Create(payment));
+            var response = await Client.PostAsync(Config["PROCESSOR_DEFAULT_URL"], JsonContent.Create(payment));
 
             var result = response.StatusCode switch
             {
@@ -50,7 +46,7 @@ namespace RinhaDeBackend.Application
 
         private async Task<Result<Payment, string>> ProcessPaymentFallback(Payment payment)
         {
-            var response = await Client.PostAsync("http://localhost:8002/payments", JsonContent.Create(payment));
+            var response = await Client.PostAsync(Config["PROCESSOR_FALLBACK_URL"], JsonContent.Create(payment));
 
             payment.processedOnFallback = true;
 

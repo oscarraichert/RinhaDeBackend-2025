@@ -40,13 +40,7 @@ app.MapGet("/alive", () => "Yes");
 
 app.MapPost("/payments", async (Payment payment, PaymentService service) =>
 {
-    var result = await service.HandleProccessPayment(payment);
-
-    return result.IsSuccess switch
-    {
-        true => Results.Ok(result.Value),
-        false => Results.Problem(result.ErrorValue),
-    };
+    await service.HandleProccessPayment(payment);
 })
 .WithName("ProcessPayment");
 
